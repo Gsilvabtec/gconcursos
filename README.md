@@ -1,1 +1,3 @@
-# gconcursos
+# GCONCURSOS
+
+Projeto inicial do GCONCURSOS.
