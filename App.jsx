@@ -45,7 +45,7 @@ console.log("DOCUMENTO EXISTE:", userSnap.exists());
 
         const dados = userSnap.data();
 
-console.log("DADOS DO USUARIO:", dados);
+alert(JSON.stringify(dados));
 
 setProfile(dados);
 
