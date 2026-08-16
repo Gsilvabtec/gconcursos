@@ -301,11 +301,11 @@ setProfile({
         </p>
 
         <p>
-          Acesso:{' '}
-          <strong>
-            {profile?.role || 'Não definido'}
-          </strong>
-        </p>
+  Acesso:{' '}
+  <strong>
+    {profile ? JSON.stringify(profile) : 'PROFILE VAZIO'}
+  </strong>
+</p>
 
         <hr />
 
