@@ -36,7 +36,7 @@ export default function App() {
 
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
-
+console.log("DOCUMENTO EXISTE:", userSnap.exists());
         if (!userSnap.exists()) {
           setProfile(null);
           setMensagem('Perfil do usuário não encontrado.');
