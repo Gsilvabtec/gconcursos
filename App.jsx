@@ -1,5 +1,5 @@
 import React from 'react';
-import './styles.css';
+import './estilos.css';
 import { app } from './firebase';
 
 export default function App() {
