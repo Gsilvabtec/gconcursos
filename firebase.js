@@ -1,6 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCvVkocze-dtZWoBNWFLIESD3sTslb1ifo",
@@ -17,5 +21,7 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
 });
