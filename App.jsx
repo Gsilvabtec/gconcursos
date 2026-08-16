@@ -36,9 +36,14 @@ export default function App() {
           if (userSnap.exists()) {
             const dadosUsuario = userSnap.data();
 
-            console.log('Perfil carregado:', dadosUsuario);
+console.log('Perfil carregado:', dadosUsuario);
 
-            setProfile(dadosUsuario);
+setProfile({
+  email: dadosUsuario.email || '',
+  role: dadosUsuario.role || 'user',
+  status: dadosUsuario.status || 'pending',
+  criadoEm: dadosUsuario.criadoEm || ''
+});
           } else {
             setProfile(null);
             setMensagem(
