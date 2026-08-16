@@ -45,14 +45,9 @@ console.log("DOCUMENTO EXISTE:", userSnap.exists());
 
         const dados = userSnap.data();
 
-        console.log('DADOS DO USUARIO:', dados);
+console.log("DADOS DO USUARIO:", dados);
 
-        setProfile({
-          email: dados.email,
-          role: dados.role,
-          status: dados.status,
-          criadoEm: dados.criadoEm
-        });
+setProfile(dados);
 
       } catch (error) {
         console.error('ERRO FIREBASE:', error);
