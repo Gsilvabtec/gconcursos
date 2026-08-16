@@ -23,8 +23,9 @@ export default function App() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    try {
       setUser(currentUser);
 
       if (currentUser) {
@@ -33,16 +34,26 @@ export default function App() {
 
         if (userSnap.exists()) {
           setProfile(userSnap.data());
+        } else {
+          setProfile(null);
+          setMensagem('Perfil do usuário não encontrado no Firestore.');
         }
       } else {
         setProfile(null);
       }
+    } catch (error) {
+      console.error('Erro ao carregar usuário:', error);
 
+      setMensagem(
+        'Erro ao carregar os dados do usuário: ' + error.message
+      );
+    } finally {
       setCarregando(false);
-    });
+    }
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
 
   async function cadastrar() {
     setMensagem('');
