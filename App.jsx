@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth';
+
 import {
   doc,
   getDoc,
@@ -23,54 +24,65 @@ export default function App() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(true);
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    try {
-      setUser(currentUser);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      try {
+        setUser(currentUser);
 
-      if (currentUser) {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
+        if (currentUser) {
+          const userRef = doc(db, 'users', currentUser.uid);
+          const userSnap = await getDoc(userRef);
 
-        if (userSnap.exists()) {
-          setProfile(userSnap.data());
+          if (userSnap.exists()) {
+            const dadosUsuario = userSnap.data();
+
+            console.log('Perfil carregado:', dadosUsuario);
+
+            setProfile(dadosUsuario);
+          } else {
+            setProfile(null);
+            setMensagem(
+              'Perfil do usuário não encontrado no Firestore.'
+            );
+          }
         } else {
           setProfile(null);
-          setMensagem('Perfil do usuário não encontrado no Firestore.');
         }
-      } else {
-        setProfile(null);
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+
+        setMensagem(
+          'Erro ao carregar os dados do usuário: ' +
+            error.message
+        );
+      } finally {
+        setCarregando(false);
       }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error);
+    });
 
-      setMensagem(
-        'Erro ao carregar os dados do usuário: ' + error.message
-      );
-    } finally {
-      setCarregando(false);
-    }
-  });
-
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
   async function cadastrar() {
     setMensagem('');
 
     try {
-      const credencial = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        senha
-      );
+      const credencial =
+        await createUserWithEmailAndPassword(
+          auth,
+          email,
+          senha
+        );
 
-      await setDoc(doc(db, 'users', credencial.user.uid), {
-        email: email,
-        role: 'user',
-        status: 'pending',
-        criadoEm: new Date().toISOString()
-      });
+      await setDoc(
+        doc(db, 'users', credencial.user.uid),
+        {
+          email: email,
+          role: 'user',
+          status: 'pending',
+          criadoEm: new Date().toISOString()
+        }
+      );
 
       setMensagem(
         'Cadastro realizado! Aguarde a aprovação do administrador.'
@@ -84,7 +96,11 @@ useEffect(() => {
     setMensagem('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, senha);
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        senha
+      );
     } catch (error) {
       setMensagem(traduzirErro(error.code));
     }
@@ -99,15 +115,29 @@ useEffect(() => {
 
   function traduzirErro(codigo) {
     const erros = {
-      'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
-      'auth/invalid-email': 'Digite um e-mail válido.',
-      'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
-      'auth/invalid-credential': 'E-mail ou senha incorretos.',
-      'auth/user-not-found': 'Usuário não encontrado.',
-      'auth/wrong-password': 'Senha incorreta.'
+      'auth/email-already-in-use':
+        'Este e-mail já está cadastrado.',
+
+      'auth/invalid-email':
+        'Digite um e-mail válido.',
+
+      'auth/weak-password':
+        'A senha precisa ter pelo menos 6 caracteres.',
+
+      'auth/invalid-credential':
+        'E-mail ou senha incorretos.',
+
+      'auth/user-not-found':
+        'Usuário não encontrado.',
+
+      'auth/wrong-password':
+        'Senha incorreta.'
     };
 
-    return erros[codigo] || 'Não foi possível realizar a operação.';
+    return (
+      erros[codigo] ||
+      'Não foi possível realizar a operação.'
+    );
   }
 
   if (carregando) {
@@ -125,33 +155,48 @@ useEffect(() => {
     return (
       <div className="container">
         <div className="card login-card">
+
           <h1>GCONCURSOS</h1>
 
           <p>
-            Plataforma inteligente para preparação e acompanhamento
-            de concursos.
+            Plataforma inteligente para preparação e
+            acompanhamento de concursos.
           </p>
 
           <h2>
-            {modo === 'login' ? 'Entrar' : 'Criar minha conta'}
+            {modo === 'login'
+              ? 'Entrar'
+              : 'Criar minha conta'}
           </h2>
 
           <input
             type="email"
             placeholder="Seu e-mail"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
           />
 
           <input
             type="password"
             placeholder="Sua senha"
             value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            onChange={(e) =>
+              setSenha(e.target.value)
+            }
           />
 
-          <button onClick={modo === 'login' ? entrar : cadastrar}>
-            {modo === 'login' ? 'Entrar' : 'Criar conta'}
+          <button
+            onClick={
+              modo === 'login'
+                ? entrar
+                : cadastrar
+            }
+          >
+            {modo === 'login'
+              ? 'Entrar'
+              : 'Criar conta'}
           </button>
 
           {mensagem && (
@@ -163,7 +208,12 @@ useEffect(() => {
           <button
             className="link-button"
             onClick={() => {
-              setModo(modo === 'login' ? 'cadastro' : 'login');
+              setModo(
+                modo === 'login'
+                  ? 'cadastro'
+                  : 'login'
+              );
+
               setMensagem('');
             }}
           >
@@ -171,6 +221,7 @@ useEffect(() => {
               ? 'Ainda não tenho conta'
               : 'Já tenho uma conta'}
           </button>
+
         </div>
       </div>
     );
@@ -180,6 +231,7 @@ useEffect(() => {
     return (
       <div className="container">
         <div className="card">
+
           <h1>GCONCURSOS</h1>
 
           <h2>⏳ Acesso pendente</h2>
@@ -189,15 +241,19 @@ useEffect(() => {
           </p>
 
           <p>
-            O administrador precisa aprovar seu acesso antes de
-            você utilizar a plataforma.
+            O administrador precisa aprovar seu
+            acesso antes de você utilizar a
+            plataforma.
           </p>
 
           <p>
             <strong>{user.email}</strong>
           </p>
 
-          <button onClick={sair}>Sair</button>
+          <button onClick={sair}>
+            Sair
+          </button>
+
         </div>
       </div>
     );
@@ -207,15 +263,20 @@ useEffect(() => {
     return (
       <div className="container">
         <div className="card">
+
           <h1>GCONCURSOS</h1>
 
           <h2>🚫 Acesso bloqueado</h2>
 
           <p>
-            Sua conta está temporariamente bloqueada.
+            Sua conta está temporariamente
+            bloqueada.
           </p>
 
-          <button onClick={sair}>Sair</button>
+          <button onClick={sair}>
+            Sair
+          </button>
+
         </div>
       </div>
     );
@@ -224,16 +285,21 @@ useEffect(() => {
   return (
     <div className="container">
       <div className="card">
+
         <h1>GCONCURSOS</h1>
 
         <h2>Bem-vindo!</h2>
 
         <p>
-          Usuário: <strong>{user.email}</strong>
+          Usuário:{' '}
+          <strong>{user.email}</strong>
         </p>
 
         <p>
-          Acesso: <strong>{profile?.role}</strong>
+          Acesso:{' '}
+          <strong>
+            {profile?.role || 'Não definido'}
+          </strong>
         </p>
 
         <hr />
@@ -250,15 +316,22 @@ useEffect(() => {
 
         {profile?.role === 'admin' && (
           <div>
+
             <hr />
+
             <h2>👑 Painel Administrativo</h2>
+
             <p>
               Área exclusiva do administrador.
             </p>
+
           </div>
         )}
 
-        <button onClick={sair}>Sair</button>
+        <button onClick={sair}>
+          Sair
+        </button>
+
       </div>
     </div>
   );
