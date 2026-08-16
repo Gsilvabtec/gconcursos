@@ -29,37 +29,34 @@ export default function App() {
       try {
         setUser(currentUser);
 
-        if (currentUser) {
-          const userRef = doc(db, 'users', currentUser.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (userSnap.exists()) {
-            const dadosUsuario = userSnap.data();
-
-console.log('Perfil carregado:', dadosUsuario);
-
-setProfile({
-  email: dadosUsuario.email || '',
-  role: dadosUsuario.role || 'user',
-  status: dadosUsuario.status || 'pending',
-  criadoEm: dadosUsuario.criadoEm || ''
-});
-          } else {
-            setProfile(null);
-            setMensagem(
-              'Perfil do usuário não encontrado no Firestore.'
-            );
-          }
-        } else {
+        if (!currentUser) {
           setProfile(null);
+          return;
         }
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
 
-        setMensagem(
-          'Erro ao carregar os dados do usuário: ' +
-            error.message
-        );
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          setProfile(null);
+          setMensagem('Perfil do usuário não encontrado.');
+          return;
+        }
+
+        const dados = userSnap.data();
+
+        console.log('DADOS DO USUARIO:', dados);
+
+        setProfile({
+          email: dados.email,
+          role: dados.role,
+          status: dados.status,
+          criadoEm: dados.criadoEm
+        });
+
+      } catch (error) {
+        console.error('ERRO FIREBASE:', error);
+        setMensagem('Erro Firebase: ' + error.message);
       } finally {
         setCarregando(false);
       }
@@ -89,11 +86,8 @@ setProfile({
         }
       );
 
-      setMensagem(
-        'Cadastro realizado! Aguarde a aprovação do administrador.'
-      );
     } catch (error) {
-      setMensagem(traduzirErro(error.code));
+      setMensagem(error.message);
     }
   }
 
@@ -107,7 +101,7 @@ setProfile({
         senha
       );
     } catch (error) {
-      setMensagem(traduzirErro(error.code));
+      setMensagem(error.message);
     }
   }
 
@@ -115,41 +109,14 @@ setProfile({
     await signOut(auth);
     setEmail('');
     setSenha('');
-    setMensagem('');
-  }
-
-  function traduzirErro(codigo) {
-    const erros = {
-      'auth/email-already-in-use':
-        'Este e-mail já está cadastrado.',
-
-      'auth/invalid-email':
-        'Digite um e-mail válido.',
-
-      'auth/weak-password':
-        'A senha precisa ter pelo menos 6 caracteres.',
-
-      'auth/invalid-credential':
-        'E-mail ou senha incorretos.',
-
-      'auth/user-not-found':
-        'Usuário não encontrado.',
-
-      'auth/wrong-password':
-        'Senha incorreta.'
-    };
-
-    return (
-      erros[codigo] ||
-      'Não foi possível realizar a operação.'
-    );
+    setProfile(null);
   }
 
   if (carregando) {
     return (
       <div className="container">
         <div className="card">
-          <h2>GCONCURSOS</h2>
+          <h1>GCONCURSOS</h1>
           <p>Carregando...</p>
         </div>
       </div>
@@ -164,8 +131,8 @@ setProfile({
           <h1>GCONCURSOS</h1>
 
           <p>
-            Plataforma inteligente para preparação e
-            acompanhamento de concursos.
+            Plataforma inteligente para preparação
+            e acompanhamento de concursos.
           </p>
 
           <h2>
@@ -178,18 +145,14 @@ setProfile({
             type="email"
             placeholder="Seu e-mail"
             value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
             type="password"
             placeholder="Sua senha"
             value={senha}
-            onChange={(e) =>
-              setSenha(e.target.value)
-            }
+            onChange={(e) => setSenha(e.target.value)}
           />
 
           <button
@@ -218,7 +181,6 @@ setProfile({
                   ? 'cadastro'
                   : 'login'
               );
-
               setMensagem('');
             }}
           >
@@ -246,9 +208,7 @@ setProfile({
           </p>
 
           <p>
-            O administrador precisa aprovar seu
-            acesso antes de você utilizar a
-            plataforma.
+            Aguarde a aprovação do administrador.
           </p>
 
           <p>
@@ -274,8 +234,7 @@ setProfile({
           <h2>🚫 Acesso bloqueado</h2>
 
           <p>
-            Sua conta está temporariamente
-            bloqueada.
+            Sua conta está temporariamente bloqueada.
           </p>
 
           <button onClick={sair}>
@@ -296,16 +255,15 @@ setProfile({
         <h2>Bem-vindo!</h2>
 
         <p>
-          Usuário:{' '}
-          <strong>{user.email}</strong>
+          Usuário: <strong>{user.email}</strong>
         </p>
 
         <p>
-  Acesso:{' '}
-  <strong>
-    {profile ? JSON.stringify(profile) : 'PROFILE VAZIO'}
-  </strong>
-</p>
+          Acesso:{' '}
+          <strong>
+            {profile?.role || 'Não definido'}
+          </strong>
+        </p>
 
         <hr />
 
@@ -320,17 +278,13 @@ setProfile({
         </ul>
 
         {profile?.role === 'admin' && (
-          <div>
-
+          <>
             <hr />
-
             <h2>👑 Painel Administrativo</h2>
-
             <p>
               Área exclusiva do administrador.
             </p>
-
-          </div>
+          </>
         )}
 
         <button onClick={sair}>
