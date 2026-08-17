@@ -15,10 +15,10 @@ import {
 } from 'firebase/firestore/lite';
 
 import { auth, db } from './firebase';
+
 import './estilos.css';
 
 export default function App() {
-
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -33,32 +33,24 @@ export default function App() {
   const [carregandoPerfil, setCarregandoPerfil] = useState(false);
 
   /*
-   * ============================================================
-   * VERIFICAR USUÁRIO LOGADO
-   * ============================================================
+   * =====================================================
+   * VERIFICAR AUTENTICAÇÃO E CARREGAR PERFIL
+   * =====================================================
    */
 
   useEffect(() => {
-
     const unsubscribe = onAuthStateChanged(
       auth,
       async (currentUser) => {
-
-        console.log('================================');
-        console.log('GCONCURSOS');
-        console.log('AUTENTICAÇÃO');
-        console.log('================================');
-
-        console.log('Usuário autenticado:', currentUser);
+        console.log('GCONCURSOS - AUTENTICAÇÃO');
+        console.log('Usuário:', currentUser);
 
         setUser(currentUser);
 
         if (!currentUser) {
-
           setProfile(null);
           setMensagem('');
           setCarregando(false);
-
           return;
         }
 
@@ -66,10 +58,7 @@ export default function App() {
         setMensagem('');
 
         try {
-
-          console.log('================================');
-          console.log('BUSCANDO PERFIL');
-          console.log('================================');
+          console.log('GCONCURSOS - BUSCANDO PERFIL');
 
           console.log(
             'E-mail:',
@@ -81,13 +70,6 @@ export default function App() {
             currentUser.uid
           );
 
-          /*
-           * Documento:
-           *
-           * users/
-           *    UID DO USUÁRIO
-           */
-
           const userRef = doc(
             db,
             'users',
@@ -95,13 +77,9 @@ export default function App() {
           );
 
           console.log(
-  'Caminho:',
-  'users/' + currentUser.uid
-);
-
-          /*
-           * Firestore Lite
-           */
+            'Caminho:',
+            'users/' + currentUser.uid
+          );
 
           const userSnap = await getDoc(userRef);
 
@@ -111,30 +89,22 @@ export default function App() {
           );
 
           if (!userSnap.exists()) {
-
             console.error(
-              'DOCUMENTO DO USUÁRIO NÃO EXISTE.'
+              'Documento do usuário não encontrado.'
             );
 
             setProfile(null);
 
             setMensagem(
-              'O documento do usuário não foi encontrado no Firestore.'
+              'Perfil do usuário não encontrado no Firestore.'
             );
 
             return;
           }
 
-          /*
-           * Dados encontrados
-           */
-
           const dados = userSnap.data();
 
-          console.log('================================');
-          console.log('DADOS DO USUÁRIO');
-          console.log('================================');
-
+          console.log('DADOS DO USUARIO:');
           console.log(dados);
 
           console.log(
@@ -153,27 +123,28 @@ export default function App() {
           );
 
           setProfile({
-            email: dados.email || currentUser.email,
-            role: dados.role || 'user',
-            status: dados.status || 'pending',
-            criadoEm: dados.criadoEm || ''
+            email:
+              dados.email ||
+              currentUser.email,
+
+            role:
+              dados.role ||
+              'user',
+
+            status:
+              dados.status ||
+              'pending',
+
+            criadoEm:
+              dados.criadoEm ||
+              ''
           });
 
         } catch (error) {
-
           console.error(
-            '================================'
+            'ERRO FIREBASE:',
+            error
           );
-
-          console.error(
-            'ERRO FIREBASE'
-          );
-
-          console.error(
-            '================================'
-          );
-
-          console.error(error);
 
           setProfile(null);
 
@@ -183,32 +154,26 @@ export default function App() {
           );
 
         } finally {
-
           setCarregandoPerfil(false);
           setCarregando(false);
-
         }
-
       }
     );
 
     return () => unsubscribe();
-
   }, []);
 
 
   /*
-   * ============================================================
+   * =====================================================
    * CADASTRAR
-   * ============================================================
+   * =====================================================
    */
 
   async function cadastrar() {
-
     setMensagem('');
 
     if (!email || !senha) {
-
       setMensagem(
         'Informe seu e-mail e sua senha.'
       );
@@ -217,11 +182,6 @@ export default function App() {
     }
 
     try {
-
-      console.log(
-        'Criando conta...'
-      );
-
       const credencial =
         await createUserWithEmailAndPassword(
           auth,
@@ -234,10 +194,6 @@ export default function App() {
         credencial.user.uid
       );
 
-      /*
-       * Criar documento no Firestore
-       */
-
       await setDoc(
         doc(
           db,
@@ -248,20 +204,20 @@ export default function App() {
           email: email,
           role: 'user',
           status: 'pending',
-          criadoEm: new Date().toISOString()
+          criadoEm:
+            new Date().toISOString()
         }
       );
 
       console.log(
-        'Documento criado no Firestore.'
+        'Perfil criado no Firestore.'
       );
 
       setMensagem(
-        'Cadastro realizado com sucesso. Aguarde a aprovação do administrador.'
+        'Cadastro realizado com sucesso. Aguarde a aprovação.'
       );
 
     } catch (error) {
-
       console.error(
         'ERRO AO CADASTRAR:',
         error
@@ -275,17 +231,15 @@ export default function App() {
 
 
   /*
-   * ============================================================
-   * ENTRAR
-   * ============================================================
+   * =====================================================
+   * LOGIN
+   * =====================================================
    */
 
   async function entrar() {
-
     setMensagem('');
 
     if (!email || !senha) {
-
       setMensagem(
         'Informe seu e-mail e sua senha.'
       );
@@ -294,7 +248,6 @@ export default function App() {
     }
 
     try {
-
       console.log(
         'Realizando login...'
       );
@@ -306,11 +259,10 @@ export default function App() {
       );
 
       console.log(
-        'Login realizado.'
+        'Login realizado com sucesso.'
       );
 
     } catch (error) {
-
       console.error(
         'ERRO AO ENTRAR:',
         error
@@ -324,15 +276,13 @@ export default function App() {
 
 
   /*
-   * ============================================================
+   * =====================================================
    * SAIR
-   * ============================================================
+   * =====================================================
    */
 
   async function sair() {
-
     try {
-
       await signOut(auth);
 
       setUser(null);
@@ -343,33 +293,24 @@ export default function App() {
 
       setMensagem('');
 
-      console.log(
-        'Usuário saiu.'
-      );
-
     } catch (error) {
-
       console.error(
-        'Erro ao sair:',
+        'ERRO AO SAIR:',
         error
       );
-
     }
   }
 
 
   /*
-   * ============================================================
-   * CARREGANDO
-   * ============================================================
+   * =====================================================
+   * CARREGANDO APLICAÇÃO
+   * =====================================================
    */
 
   if (carregando) {
-
     return (
-
       <div className="container">
-
         <div className="card">
 
           <h1>
@@ -381,23 +322,19 @@ export default function App() {
           </p>
 
         </div>
-
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
+   * =====================================================
    * LOGIN / CADASTRO
-   * ============================================================
+   * =====================================================
    */
 
   if (!user) {
-
     return (
-
       <div className="container">
 
         <div className="card login-card">
@@ -412,13 +349,10 @@ export default function App() {
           </p>
 
           <h2>
-
             {modo === 'login'
               ? 'Entrar'
               : 'Criar minha conta'}
-
           </h2>
-
 
           <input
             type="email"
@@ -429,7 +363,6 @@ export default function App() {
             }
           />
 
-
           <input
             type="password"
             placeholder="Sua senha"
@@ -439,7 +372,6 @@ export default function App() {
             }
           />
 
-
           <button
             onClick={
               modo === 'login'
@@ -447,30 +379,20 @@ export default function App() {
                 : cadastrar
             }
           >
-
             {modo === 'login'
               ? 'Entrar'
               : 'Criar conta'}
-
           </button>
 
-
           {mensagem && (
-
             <p className="mensagem">
-
               {mensagem}
-
             </p>
-
           )}
-
 
           <button
             className="link-button"
-
             onClick={() => {
-
               setModo(
                 modo === 'login'
                   ? 'cadastro'
@@ -478,34 +400,28 @@ export default function App() {
               );
 
               setMensagem('');
-
             }}
           >
-
             {modo === 'login'
               ? 'Ainda não tenho conta'
               : 'Já tenho uma conta'}
-
           </button>
 
         </div>
 
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
+   * =====================================================
    * CARREGANDO PERFIL
-   * ============================================================
+   * =====================================================
    */
 
   if (carregandoPerfil) {
-
     return (
-
       <div className="container">
 
         <div className="card">
@@ -520,29 +436,27 @@ export default function App() {
 
           <p>
             Usuário:
+            {' '}
             <strong>
-              {' '}{user.email}
+              {user.email}
             </strong>
           </p>
 
         </div>
 
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
-   * ERRO AO CARREGAR PERFIL
-   * ============================================================
+   * =====================================================
+   * ERRO NO PERFIL
+   * =====================================================
    */
 
   if (mensagem && !profile) {
-
     return (
-
       <div className="container">
 
         <div className="card">
@@ -556,18 +470,16 @@ export default function App() {
           </h2>
 
           <p>
-
             Usuário:
+            {' '}
             <strong>
-              {' '}{user.email}
+              {user.email}
             </strong>
-
           </p>
 
-          <p>
+          <p className="mensagem">
             {mensagem}
           </p>
-
 
           <button onClick={sair}>
             Sair
@@ -576,21 +488,18 @@ export default function App() {
         </div>
 
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
-   * USUÁRIO PENDENTE
-   * ============================================================
+   * =====================================================
+   * ACESSO PENDENTE
+   * =====================================================
    */
 
   if (profile?.status === 'pending') {
-
     return (
-
       <div className="container">
 
         <div className="card">
@@ -611,17 +520,21 @@ export default function App() {
             Aguarde a aprovação do administrador.
           </p>
 
+          <hr />
+
           <p>
             Usuário:
+            {' '}
             <strong>
-              {' '}{user.email}
+              {user.email}
             </strong>
           </p>
 
           <p>
             Status:
+            {' '}
             <strong>
-              {' '}{profile.status}
+              {profile.status}
             </strong>
           </p>
 
@@ -632,21 +545,18 @@ export default function App() {
         </div>
 
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
-   * USUÁRIO BLOQUEADO
-   * ============================================================
+   * =====================================================
+   * ACESSO BLOQUEADO
+   * =====================================================
    */
 
   if (profile?.status === 'blocked') {
-
     return (
-
       <div className="container">
 
         <div className="card">
@@ -670,19 +580,17 @@ export default function App() {
         </div>
 
       </div>
-
     );
   }
 
 
   /*
-   * ============================================================
+   * =====================================================
    * PAINEL PRINCIPAL
-   * ============================================================
+   * =====================================================
    */
 
   return (
-
     <div className="container">
 
       <div className="card">
@@ -695,44 +603,37 @@ export default function App() {
           Bem-vindo!
         </h2>
 
-
         <p>
-
           Usuário:
+          {' '}
           <strong>
-            {' '}{user.email}
+            {user.email}
           </strong>
-
         </p>
 
-
         <p>
-
           Acesso:
+          {' '}
           <strong>
-            {' '}{profile?.role || 'Não definido'}
+            {profile?.role ||
+              'Não definido'}
           </strong>
-
         </p>
-
 
         <p>
-
           Status:
+          {' '}
           <strong>
-            {' '}{profile?.status || 'Não definido'}
+            {profile?.status ||
+              'Não definido'}
           </strong>
-
         </p>
-
 
         <hr />
-
 
         <h2>
           📚 Meu painel
         </h2>
-
 
         <ul>
 
@@ -758,11 +659,8 @@ export default function App() {
 
         </ul>
 
-
         {profile?.role === 'admin' && (
-
           <>
-
             <hr />
 
             <h2>
@@ -772,11 +670,8 @@ export default function App() {
             <p>
               Área exclusiva do administrador.
             </p>
-
           </>
-
         )}
-
 
         <button onClick={sair}>
           Sair
@@ -785,7 +680,6 @@ export default function App() {
       </div>
 
     </div>
-
   );
 }
 ```
