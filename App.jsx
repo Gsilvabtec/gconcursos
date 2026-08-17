@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -8,7 +9,7 @@ import {
 
 import {
   doc,
-  getDoc,
+  getDocFromServer,
   setDoc
 } from 'firebase/firestore';
 
@@ -21,73 +22,115 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [modo, setModo] = useState('login');
+
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(true);
+  const [carregandoPerfil, setCarregandoPerfil] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('AUTH:', currentUser);
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (currentUser) => {
 
-      if (!currentUser) {
-        setUser(null);
-        setProfile(null);
-        setCarregando(false);
-        return;
-      }
+        console.log('==============================');
+        console.log('GCONCURSOS - AUTENTICAÇÃO');
+        console.log('USUÁRIO:', currentUser);
+        console.log('==============================');
 
-      setUser(currentUser);
+        setUser(currentUser);
 
-      try {
-        console.log('UID:', currentUser.uid);
-
-        const userRef = doc(
-          db,
-          'users',
-          currentUser.uid
-        );
-
-        console.log('BUSCANDO DOCUMENTO...');
-
-        const userSnap = await getDoc(userRef);
-
-        console.log(
-          'DOCUMENTO ENCONTRADO:',
-          userSnap.exists()
-        );
-
-        if (!userSnap.exists()) {
-          console.log('DOCUMENTO NÃO EXISTE');
+        if (!currentUser) {
           setProfile(null);
-          setMensagem(
-            'Perfil do usuário não encontrado.'
-          );
+          setCarregando(false);
           return;
         }
 
-        const dados = userSnap.data();
+        setCarregandoPerfil(true);
+        setMensagem('');
 
-        console.log(
-          'DADOS DO USUARIO:',
-          dados
-        );
+        try {
+          console.log('UID DO USUÁRIO:');
+          console.log(currentUser.uid);
 
-        setProfile(dados);
+          const userRef = doc(
+            db,
+            'users',
+            currentUser.uid
+          );
 
-      } catch (error) {
-        console.error(
-          'ERRO AO BUSCAR PERFIL:',
-          error
-        );
+          console.log('BUSCANDO NO FIRESTORE:');
+          console.log(
+            'users/' + currentUser.uid
+          );
 
-        setMensagem(
-          'Erro ao carregar perfil: ' +
-          error.message
-        );
+          const userSnap =
+            await getDocFromServer(userRef);
 
-      } finally {
-        setCarregando(false);
+          console.log(
+            'DOCUMENTO EXISTE:',
+            userSnap.exists()
+          );
+
+          if (!userSnap.exists()) {
+
+            console.error(
+              'O DOCUMENTO NÃO FOI ENCONTRADO.'
+            );
+
+            setProfile(null);
+
+            setMensagem(
+              'O cadastro do usuário não foi encontrado no Firestore.'
+            );
+
+            return;
+          }
+
+          const dados = userSnap.data();
+
+          console.log(
+            'DADOS RECEBIDOS DO FIRESTORE:',
+            dados
+          );
+
+          console.log(
+            'EMAIL:',
+            dados.email
+          );
+
+          console.log(
+            'ROLE:',
+            dados.role
+          );
+
+          console.log(
+            'STATUS:',
+            dados.status
+          );
+
+          setProfile(dados);
+
+        } catch (error) {
+
+          console.error(
+            'ERRO FIREBASE AO CARREGAR PERFIL:',
+            error
+          );
+
+          setProfile(null);
+
+          setMensagem(
+            'ERRO FIREBASE: ' +
+            error.message
+          );
+
+        } finally {
+
+          setCarregandoPerfil(false);
+          setCarregando(false);
+        }
       }
-    });
+    );
 
     return () => unsubscribe();
   }, []);
@@ -96,6 +139,7 @@ export default function App() {
     setMensagem('');
 
     try {
+
       const credencial =
         await createUserWithEmailAndPassword(
           auth,
@@ -113,11 +157,22 @@ export default function App() {
           email: email,
           role: 'user',
           status: 'pending',
-          criadoEm: new Date().toISOString()
+          criadoEm:
+            new Date().toISOString()
         }
       );
 
+      setMensagem(
+        'Cadastro realizado com sucesso. Aguarde a aprovação.'
+      );
+
     } catch (error) {
+
+      console.error(
+        'ERRO NO CADASTRO:',
+        error
+      );
+
       setMensagem(error.message);
     }
   }
@@ -126,18 +181,28 @@ export default function App() {
     setMensagem('');
 
     try {
+
       await signInWithEmailAndPassword(
         auth,
         email,
         senha
       );
+
     } catch (error) {
+
+      console.error(
+        'ERRO NO LOGIN:',
+        error
+      );
+
       setMensagem(error.message);
     }
   }
 
   async function sair() {
+
     await signOut(auth);
+
     setUser(null);
     setProfile(null);
     setEmail('');
@@ -146,19 +211,27 @@ export default function App() {
   }
 
   if (carregando) {
+
     return (
       <div className="container">
         <div className="card">
+
           <h1>GCONCURSOS</h1>
-          <p>Carregando...</p>
+
+          <p>
+            Carregando...
+          </p>
+
         </div>
       </div>
     );
   }
 
   if (!user) {
+
     return (
       <div className="container">
+
         <div className="card login-card">
 
           <h1>GCONCURSOS</h1>
@@ -214,6 +287,7 @@ export default function App() {
           <button
             className="link-button"
             onClick={() => {
+
               setModo(
                 modo === 'login'
                   ? 'cadastro'
@@ -229,16 +303,69 @@ export default function App() {
           </button>
 
         </div>
+
       </div>
     );
   }
 
-  if (
-    profile &&
-    profile.status === 'pending'
-  ) {
+  if (carregandoPerfil) {
+
     return (
       <div className="container">
+        <div className="card">
+
+          <h1>GCONCURSOS</h1>
+
+          <h2>
+            Carregando seu perfil...
+          </h2>
+
+          <p>
+            Usuário: <strong>{user.email}</strong>
+          </p>
+
+        </div>
+      </div>
+    );
+  }
+
+  if (mensagem && !profile) {
+
+    return (
+      <div className="container">
+
+        <div className="card">
+
+          <h1>GCONCURSOS</h1>
+
+          <h2>
+            ⚠️ Erro ao carregar perfil
+          </h2>
+
+          <p>
+            Usuário:
+            <strong> {user.email}</strong>
+          </p>
+
+          <p>
+            {mensagem}
+          </p>
+
+          <button onClick={sair}>
+            Sair
+          </button>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  if (profile?.status === 'pending') {
+
+    return (
+      <div className="container">
+
         <div className="card">
 
           <h1>GCONCURSOS</h1>
@@ -261,21 +388,26 @@ export default function App() {
             </strong>
           </p>
 
+          <p>
+            Status:
+            <strong> {profile.status}</strong>
+          </p>
+
           <button onClick={sair}>
             Sair
           </button>
 
         </div>
+
       </div>
     );
   }
 
-  if (
-    profile &&
-    profile.status === 'blocked'
-  ) {
+  if (profile?.status === 'blocked') {
+
     return (
       <div className="container">
+
         <div className="card">
 
           <h1>GCONCURSOS</h1>
@@ -294,17 +426,21 @@ export default function App() {
           </button>
 
         </div>
+
       </div>
     );
   }
 
   return (
     <div className="container">
+
       <div className="card">
 
         <h1>GCONCURSOS</h1>
 
-        <h2>Bem-vindo!</h2>
+        <h2>
+          Bem-vindo!
+        </h2>
 
         <p>
           Usuário:{' '}
@@ -317,6 +453,13 @@ export default function App() {
           Acesso:{' '}
           <strong>
             {profile?.role || 'Não definido'}
+          </strong>
+        </p>
+
+        <p>
+          Status:{' '}
+          <strong>
+            {profile?.status || 'Não definido'}
           </strong>
         </p>
 
@@ -353,6 +496,7 @@ export default function App() {
         </button>
 
       </div>
+
     </div>
   );
 }
