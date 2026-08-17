@@ -95,9 +95,9 @@ export default function App() {
           );
 
           console.log(
-            'Caminho:',
-            `users/${currentUser.uid}`
-          );
+  'Caminho:',
+  'users/' + currentUser.uid
+);
 
           /*
            * Firestore Lite
