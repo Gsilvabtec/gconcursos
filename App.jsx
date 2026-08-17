@@ -1,4 +1,3 @@
-```jsx
 import React, { useEffect, useState } from 'react';
 
 import {
@@ -21,22 +20,12 @@ import './estilos.css';
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-
   const [modo, setModo] = useState('login');
-
   const [mensagem, setMensagem] = useState('');
-
   const [carregando, setCarregando] = useState(true);
   const [carregandoPerfil, setCarregandoPerfil] = useState(false);
-
-  /*
-   * =====================================================
-   * VERIFICAR AUTENTICAÇÃO E CARREGAR PERFIL
-   * =====================================================
-   */
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -60,15 +49,8 @@ export default function App() {
         try {
           console.log('GCONCURSOS - BUSCANDO PERFIL');
 
-          console.log(
-            'E-mail:',
-            currentUser.email
-          );
-
-          console.log(
-            'UID:',
-            currentUser.uid
-          );
+          console.log('E-mail:', currentUser.email);
+          console.log('UID:', currentUser.uid);
 
           const userRef = doc(
             db,
@@ -94,7 +76,6 @@ export default function App() {
             );
 
             setProfile(null);
-
             setMensagem(
               'Perfil do usuário não encontrado no Firestore.'
             );
@@ -104,53 +85,26 @@ export default function App() {
 
           const dados = userSnap.data();
 
-          console.log('DADOS DO USUARIO:');
-          console.log(dados);
+          console.log('DADOS DO USUARIO:', dados);
 
-          console.log(
-            'E-mail:',
-            dados.email
-          );
-
-          console.log(
-            'Role:',
-            dados.role
-          );
-
-          console.log(
-            'Status:',
-            dados.status
-          );
+          console.log('E-mail:', dados.email);
+          console.log('Role:', dados.role);
+          console.log('Status:', dados.status);
 
           setProfile({
-            email:
-              dados.email ||
-              currentUser.email,
-
-            role:
-              dados.role ||
-              'user',
-
-            status:
-              dados.status ||
-              'pending',
-
-            criadoEm:
-              dados.criadoEm ||
-              ''
+            email: dados.email || currentUser.email,
+            role: dados.role || 'user',
+            status: dados.status || 'pending',
+            criadoEm: dados.criadoEm || ''
           });
 
         } catch (error) {
-          console.error(
-            'ERRO FIREBASE:',
-            error
-          );
+          console.error('ERRO FIREBASE:', error);
 
           setProfile(null);
 
           setMensagem(
-            'ERRO FIREBASE: ' +
-            error.message
+            'ERRO FIREBASE: ' + error.message
           );
 
         } finally {
@@ -163,13 +117,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-
-  /*
-   * =====================================================
-   * CADASTRAR
-   * =====================================================
-   */
-
   async function cadastrar() {
     setMensagem('');
 
@@ -177,7 +124,6 @@ export default function App() {
       setMensagem(
         'Informe seu e-mail e sua senha.'
       );
-
       return;
     }
 
@@ -204,8 +150,7 @@ export default function App() {
           email: email,
           role: 'user',
           status: 'pending',
-          criadoEm:
-            new Date().toISOString()
+          criadoEm: new Date().toISOString()
         }
       );
 
@@ -223,18 +168,9 @@ export default function App() {
         error
       );
 
-      setMensagem(
-        error.message
-      );
+      setMensagem(error.message);
     }
   }
-
-
-  /*
-   * =====================================================
-   * LOGIN
-   * =====================================================
-   */
 
   async function entrar() {
     setMensagem('');
@@ -243,14 +179,11 @@ export default function App() {
       setMensagem(
         'Informe seu e-mail e sua senha.'
       );
-
       return;
     }
 
     try {
-      console.log(
-        'Realizando login...'
-      );
+      console.log('Realizando login...');
 
       await signInWithEmailAndPassword(
         auth,
@@ -268,18 +201,9 @@ export default function App() {
         error
       );
 
-      setMensagem(
-        error.message
-      );
+      setMensagem(error.message);
     }
   }
-
-
-  /*
-   * =====================================================
-   * SAIR
-   * =====================================================
-   */
 
   async function sair() {
     try {
@@ -287,10 +211,8 @@ export default function App() {
 
       setUser(null);
       setProfile(null);
-
       setEmail('');
       setSenha('');
-
       setMensagem('');
 
     } catch (error) {
@@ -301,47 +223,23 @@ export default function App() {
     }
   }
 
-
-  /*
-   * =====================================================
-   * CARREGANDO APLICAÇÃO
-   * =====================================================
-   */
-
   if (carregando) {
     return (
       <div className="container">
         <div className="card">
-
-          <h1>
-            GCONCURSOS
-          </h1>
-
-          <p>
-            Carregando...
-          </p>
-
+          <h1>GCONCURSOS</h1>
+          <p>Carregando...</p>
         </div>
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * LOGIN / CADASTRO
-   * =====================================================
-   */
-
   if (!user) {
     return (
       <div className="container">
-
         <div className="card login-card">
 
-          <h1>
-            GCONCURSOS
-          </h1>
+          <h1>GCONCURSOS</h1>
 
           <p>
             Plataforma inteligente para preparação
@@ -408,70 +306,46 @@ export default function App() {
           </button>
 
         </div>
-
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * CARREGANDO PERFIL
-   * =====================================================
-   */
-
   if (carregandoPerfil) {
     return (
       <div className="container">
-
         <div className="card">
 
-          <h1>
-            GCONCURSOS
-          </h1>
+          <h1>GCONCURSOS</h1>
 
           <h2>
             Carregando seu perfil...
           </h2>
 
           <p>
-            Usuário:
-            {' '}
+            Usuário:{' '}
             <strong>
               {user.email}
             </strong>
           </p>
 
         </div>
-
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * ERRO NO PERFIL
-   * =====================================================
-   */
-
   if (mensagem && !profile) {
     return (
       <div className="container">
-
         <div className="card">
 
-          <h1>
-            GCONCURSOS
-          </h1>
+          <h1>GCONCURSOS</h1>
 
           <h2>
             ⚠️ Erro ao carregar perfil
           </h2>
 
           <p>
-            Usuário:
-            {' '}
+            Usuário:{' '}
             <strong>
               {user.email}
             </strong>
@@ -486,27 +360,16 @@ export default function App() {
           </button>
 
         </div>
-
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * ACESSO PENDENTE
-   * =====================================================
-   */
-
   if (profile?.status === 'pending') {
     return (
       <div className="container">
-
         <div className="card">
 
-          <h1>
-            GCONCURSOS
-          </h1>
+          <h1>GCONCURSOS</h1>
 
           <h2>
             ⏳ Acesso pendente
@@ -523,16 +386,14 @@ export default function App() {
           <hr />
 
           <p>
-            Usuário:
-            {' '}
+            Usuário:{' '}
             <strong>
               {user.email}
             </strong>
           </p>
 
           <p>
-            Status:
-            {' '}
+            Status:{' '}
             <strong>
               {profile.status}
             </strong>
@@ -543,27 +404,16 @@ export default function App() {
           </button>
 
         </div>
-
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * ACESSO BLOQUEADO
-   * =====================================================
-   */
-
   if (profile?.status === 'blocked') {
     return (
       <div className="container">
-
         <div className="card">
 
-          <h1>
-            GCONCURSOS
-          </h1>
+          <h1>GCONCURSOS</h1>
 
           <h2>
             🚫 Acesso bloqueado
@@ -578,85 +428,49 @@ export default function App() {
           </button>
 
         </div>
-
       </div>
     );
   }
 
-
-  /*
-   * =====================================================
-   * PAINEL PRINCIPAL
-   * =====================================================
-   */
-
   return (
     <div className="container">
-
       <div className="card">
 
-        <h1>
-          GCONCURSOS
-        </h1>
+        <h1>GCONCURSOS</h1>
 
-        <h2>
-          Bem-vindo!
-        </h2>
+        <h2>Bem-vindo!</h2>
 
         <p>
-          Usuário:
-          {' '}
+          Usuário:{' '}
           <strong>
             {user.email}
           </strong>
         </p>
 
         <p>
-          Acesso:
-          {' '}
+          Acesso:{' '}
           <strong>
-            {profile?.role ||
-              'Não definido'}
+            {profile?.role || 'Não definido'}
           </strong>
         </p>
 
         <p>
-          Status:
-          {' '}
+          Status:{' '}
           <strong>
-            {profile?.status ||
-              'Não definido'}
+            {profile?.status || 'Não definido'}
           </strong>
         </p>
 
         <hr />
 
-        <h2>
-          📚 Meu painel
-        </h2>
+        <h2>📚 Meu painel</h2>
 
         <ul>
-
-          <li>
-            🎯 Meus concursos
-          </li>
-
-          <li>
-            📚 Minhas matérias
-          </li>
-
-          <li>
-            📊 Diagnóstico por matéria
-          </li>
-
-          <li>
-            📈 Minha evolução
-          </li>
-
-          <li>
-            📅 Meu cronograma
-          </li>
-
+          <li>🎯 Meus concursos</li>
+          <li>📚 Minhas matérias</li>
+          <li>📊 Diagnóstico por matéria</li>
+          <li>📈 Minha evolução</li>
+          <li>📅 Meu cronograma</li>
         </ul>
 
         {profile?.role === 'admin' && (
@@ -678,8 +492,6 @@ export default function App() {
         </button>
 
       </div>
-
     </div>
   );
 }
-```
