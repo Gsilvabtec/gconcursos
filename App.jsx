@@ -11,7 +11,7 @@ import {
   doc,
   getDoc,
   setDoc
-} from 'firebase/firestore/lite';
+} from 'firebase/firestore';
 
 import { auth, db } from './firebase';
 
