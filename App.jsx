@@ -26,32 +26,64 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log('AUTH:', currentUser);
+
+      if (!currentUser) {
+        setUser(null);
+        setProfile(null);
+        setCarregando(false);
+        return;
+      }
+
+      setUser(currentUser);
+
       try {
-        setUser(currentUser);
+        console.log('UID:', currentUser.uid);
 
-        if (!currentUser) {
-          setProfile(null);
-          return;
-        }
+        const userRef = doc(
+          db,
+          'users',
+          currentUser.uid
+        );
 
-        const userRef = doc(db, 'users', currentUser.uid);
+        console.log('BUSCANDO DOCUMENTO...');
+
         const userSnap = await getDoc(userRef);
-console.log("DOCUMENTO EXISTE:", userSnap.exists());
+
+        console.log(
+          'DOCUMENTO ENCONTRADO:',
+          userSnap.exists()
+        );
+
         if (!userSnap.exists()) {
+          console.log('DOCUMENTO NÃO EXISTE');
           setProfile(null);
-          setMensagem('Perfil do usuário não encontrado.');
+          setMensagem(
+            'Perfil do usuário não encontrado.'
+          );
           return;
         }
 
         const dados = userSnap.data();
 
-alert(JSON.stringify(dados));
+        console.log(
+          'DADOS DO USUARIO:',
+          dados
+        );
 
-setProfile(dados);
+        setProfile(dados);
 
       } catch (error) {
-        console.error('ERRO FIREBASE:', error);
-        setMensagem('Erro Firebase: ' + error.message);
+        console.error(
+          'ERRO AO BUSCAR PERFIL:',
+          error
+        );
+
+        setMensagem(
+          'Erro ao carregar perfil: ' +
+          error.message
+        );
+
       } finally {
         setCarregando(false);
       }
@@ -72,7 +104,11 @@ setProfile(dados);
         );
 
       await setDoc(
-        doc(db, 'users', credencial.user.uid),
+        doc(
+          db,
+          'users',
+          credencial.user.uid
+        ),
         {
           email: email,
           role: 'user',
@@ -102,9 +138,11 @@ setProfile(dados);
 
   async function sair() {
     await signOut(auth);
+    setUser(null);
+    setProfile(null);
     setEmail('');
     setSenha('');
-    setProfile(null);
+    setMensagem('');
   }
 
   if (carregando) {
@@ -126,8 +164,9 @@ setProfile(dados);
           <h1>GCONCURSOS</h1>
 
           <p>
-            Plataforma inteligente para preparação
-            e acompanhamento de concursos.
+            Plataforma inteligente para
+            preparação e acompanhamento
+            de concursos.
           </p>
 
           <h2>
@@ -140,14 +179,18 @@ setProfile(dados);
             type="email"
             placeholder="Seu e-mail"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
           />
 
           <input
             type="password"
             placeholder="Sua senha"
             value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            onChange={(e) =>
+              setSenha(e.target.value)
+            }
           />
 
           <button
@@ -176,6 +219,7 @@ setProfile(dados);
                   ? 'cadastro'
                   : 'login'
               );
+
               setMensagem('');
             }}
           >
@@ -189,14 +233,19 @@ setProfile(dados);
     );
   }
 
-  if (profile?.status === 'pending') {
+  if (
+    profile &&
+    profile.status === 'pending'
+  ) {
     return (
       <div className="container">
         <div className="card">
 
           <h1>GCONCURSOS</h1>
 
-          <h2>⏳ Acesso pendente</h2>
+          <h2>
+            ⏳ Acesso pendente
+          </h2>
 
           <p>
             Sua conta foi criada com sucesso.
@@ -207,7 +256,9 @@ setProfile(dados);
           </p>
 
           <p>
-            <strong>{user.email}</strong>
+            <strong>
+              {user.email}
+            </strong>
           </p>
 
           <button onClick={sair}>
@@ -219,17 +270,23 @@ setProfile(dados);
     );
   }
 
-  if (profile?.status === 'blocked') {
+  if (
+    profile &&
+    profile.status === 'blocked'
+  ) {
     return (
       <div className="container">
         <div className="card">
 
           <h1>GCONCURSOS</h1>
 
-          <h2>🚫 Acesso bloqueado</h2>
+          <h2>
+            🚫 Acesso bloqueado
+          </h2>
 
           <p>
-            Sua conta está temporariamente bloqueada.
+            Sua conta está temporariamente
+            bloqueada.
           </p>
 
           <button onClick={sair}>
@@ -250,7 +307,10 @@ setProfile(dados);
         <h2>Bem-vindo!</h2>
 
         <p>
-          Usuário: <strong>{user.email}</strong>
+          Usuário:{' '}
+          <strong>
+            {user.email}
+          </strong>
         </p>
 
         <p>
@@ -262,7 +322,9 @@ setProfile(dados);
 
         <hr />
 
-        <h2>📚 Meu painel</h2>
+        <h2>
+          📚 Meu painel
+        </h2>
 
         <ul>
           <li>🎯 Meus concursos</li>
@@ -275,7 +337,11 @@ setProfile(dados);
         {profile?.role === 'admin' && (
           <>
             <hr />
-            <h2>👑 Painel Administrativo</h2>
+
+            <h2>
+              👑 Painel Administrativo
+            </h2>
+
             <p>
               Área exclusiva do administrador.
             </p>
